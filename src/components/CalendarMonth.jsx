@@ -2,6 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { polyfill } from 'react-lifecycles-compat';
 import momentPropTypes from 'react-moment-proptypes';
 import { forbidExtraProps, mutuallyExclusiveProps, nonNegativeInteger } from 'airbnb-prop-types';
 import { css, withStyles, withStylesPropTypes } from 'react-with-styles';
@@ -93,8 +94,12 @@ const defaultProps = {
 class CalendarMonth extends React.PureComponent {
   constructor(props) {
     super(props);
+    const { month, enableOutsideDays, firstDayOfWeek } = props;
 
     this.state = {
+      month,
+      enableOutsideDays,
+      firstDayOfWeek,
       weeks: getCalendarMonthWeeks(
         props.month,
         props.enableOutsideDays,
@@ -110,26 +115,31 @@ class CalendarMonth extends React.PureComponent {
     this.setMonthTitleHeightTimeout = setTimeout(this.setMonthTitleHeight, 0);
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  static getDerivedStateFromProps(nextProps, prevState) {
     const { month, enableOutsideDays, firstDayOfWeek } = nextProps;
     const {
       month: prevMonth,
       enableOutsideDays: prevEnableOutsideDays,
       firstDayOfWeek: prevFirstDayOfWeek,
-    } = this.props;
+    } = prevState;
     if (
       !month.isSame(prevMonth)
       || enableOutsideDays !== prevEnableOutsideDays
       || firstDayOfWeek !== prevFirstDayOfWeek
     ) {
-      this.setState({
+      return {
+        month,
+        enableOutsideDays,
+        firstDayOfWeek,
         weeks: getCalendarMonthWeeks(
           month,
           enableOutsideDays,
           firstDayOfWeek == null ? moment.localeData().firstDayOfWeek() : firstDayOfWeek,
         ),
-      });
+      };
     }
+
+    return null;
   }
 
   componentWillUnmount() {
@@ -244,6 +254,8 @@ class CalendarMonth extends React.PureComponent {
     );
   }
 }
+
+polyfill(CalendarMonth);
 
 CalendarMonth.propTypes = propTypes;
 CalendarMonth.defaultProps = defaultProps;

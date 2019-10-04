@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { polyfill } from 'react-lifecycles-compat';
 import { forbidExtraProps, nonNegativeInteger } from 'airbnb-prop-types';
 import { css, withStyles, withStylesPropTypes } from 'react-with-styles';
 import throttle from 'lodash/throttle';
@@ -100,13 +101,14 @@ class DateInput extends React.PureComponent {
     this.setState({ isTouchDevice: isTouchDevice() });
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    const { dateString } = this.state;
+  static getDerivedStateFromProps(nextProps, prevState) {
+    const { dateString } = prevState;
     if (dateString && nextProps.displayValue) {
-      this.setState({
+      return {
         dateString: '',
-      });
+      };
     }
+    return null;
   }
 
   componentDidUpdate(prevProps) {
@@ -271,6 +273,8 @@ class DateInput extends React.PureComponent {
     );
   }
 }
+
+polyfill(DateInput);
 
 DateInput.propTypes = propTypes;
 DateInput.defaultProps = defaultProps;
